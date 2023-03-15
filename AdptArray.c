@@ -36,7 +36,7 @@ void DeleteAdptArray(PAdptArray pArr){
     }
 
     for (int i = 0; i < pArr->size; i++){
-        pArr->del_func(pArr->pElement);
+        pArr->del_func((pArr->pElement)[i]);
     }
 
     free(pArr->pElement);
@@ -50,12 +50,21 @@ Result SetAdptArrayAt(PAdptArray pArr, int index, PElement pElem){
     
     if(pArr->size <= index){
         PElement *temp = pArr->pElement;
-        pArr->pElement = (PElement) realloc (pArr->pElement, (index - 1) * sizeof(PElement));
+        pArr->pElement = (PElement*) realloc (pArr->pElement, (index + 1) * sizeof(PElement));
+        if(pArr->pElement == NULL){
+            if(temp != NULL){
+                free(temp);
+            }
+            return FAIL;
+        }
+        if(temp != NULL){
+            free(temp);
+        }
         pArr->size = index+1;
-        free(temp);
     }
-    pArr->del_func((pArr->pElement)[index]);
+
     (pArr->pElement)[index] = pArr->copy_func(pElem);
+    
     return SUCCESS;
 }
 
