@@ -1,10 +1,11 @@
 #include "AdptArray.h"
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct AdptArray_{
 
     int size;
-    PElement pElement;
+    PElement* pElement;
     DEL_FUNC del_func;
     COPY_FUNC copy_func;
     PRINT_FUNC print_func;
@@ -35,7 +36,7 @@ void DeleteAdptArray(PAdptArray pArr){
     }
 
     for (int i = 0; i < pArr->size; i++){
-        pArr->del_func((pArr->pElement)[i]);
+        pArr->del_func(pArr->pElement);
     }
 
     free(pArr->pElement);
@@ -43,51 +44,19 @@ void DeleteAdptArray(PAdptArray pArr){
 }
 
 Result SetAdptArrayAt(PAdptArray pArr, int index, PElement pElem){
-    // if(pArr == NULL){
-    //     return FAIL;
-    // }
-    //
-    // if (pArr->size > index){
-    //     pArr->del_func((pArr->pElement)[index]);
-    //     (pArr->pElement)[index] = pArr->copy_func(pElem);
-    //     return SUCCESS;
-    // }
-    //
-    // PElement *temp = (*PElement)calloc((index + 1), sizeof(PElement));
-    // if(temp == NULL){
-    //     return FAIL;
-    // }
-    //
-    // for(int i = 0; i < pArr->size; i++){
-    //     pArr->copy_func((pArr->pElement)[i]);
-    // }
-    // free(pArr->pElement);
-    // pArr->pElement = temp;
-    // pArr->size++;
-    // return SUCCESS;
-
-    PElement* newpElement;
-	if (pArr == NULL)
-		return FAIL;
-
-	if (index >= pArr->size){
-		
-        // Extend Array
-		if ((newpElement = (PElement*)calloc((index + 1), sizeof(PElement))) == NULL)
-			return FAIL;
-		memcpy(newpElement, pArr->pElement, (pArr->size) * sizeof(PElement));
-		free(pArr->pElement);
-		pArr->pElement = newpElement;
-	}
-
-	// Delete Previous Elem
-	pArr->del_func((pArr->pElement)[index]);
-	(pArr->pElement)[index] = pArr->copy_func(pElem);
-
-	// Update Array Size
-	pArr->size = (index >= pArr->size) ? (index + 1) : pArr->size;
-	return SUCCESS;
-
+    if(pArr == NULL){
+        return FAIL;
+    }
+    
+    if(pArr->size <= index){
+        PElement *temp = pArr->pElement;
+        pArr->pElement = (PElement) realloc (pArr->pElement, (index - 1) * sizeof(PElement));
+        pArr->size = index+1;
+        free(temp);
+    }
+    pArr->del_func((pArr->pElement)[index]);
+    (pArr->pElement)[index] = pArr->copy_func(pElem);
+    return SUCCESS;
 }
 
 PElement GetAdptArrayAt(PAdptArray pArr, int index){
