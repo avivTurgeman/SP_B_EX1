@@ -36,7 +36,9 @@ void DeleteAdptArray(PAdptArray pArr){
     }
 
     for (int i = 0; i < pArr->size; i++){
-        pArr->del_func((pArr->pElement)[i]);
+        if((pArr->pElement)[i] != NULL){
+            pArr->del_func((pArr->pElement)[i]);
+        }
     }
 
     free(pArr->pElement);
@@ -49,20 +51,21 @@ Result SetAdptArrayAt(PAdptArray pArr, int index, PElement pElem){
     }
     
     if(pArr->size <= index){
-        PElement *temp = pArr->pElement;
-        pArr->pElement = (PElement*) realloc (pArr->pElement, (index + 1) * sizeof(PElement));
-        if(pArr->pElement == NULL){
-            if(temp != NULL){
-                free(temp);
-            }
+        PElement *temp = (PElement*) calloc ((index + 1), sizeof(PElement));
+        if(temp == NULL){
             return FAIL;
         }
-        if(temp != NULL){
-            free(temp);
-        }
+        memcpy(temp, pArr->pElement, pArr->size * sizeof(PElement));
+        free(pArr->pElement);
+        pArr->pElement = temp;
         pArr->size = index+1;
     }
 
+    if((pArr->pElement)[index])
+        pArr->del_func((pArr->pElement)[index]);
+    else{
+        free((pArr->pElement)[index]);
+    }
     (pArr->pElement)[index] = pArr->copy_func(pElem);
     
     return SUCCESS;
@@ -70,6 +73,13 @@ Result SetAdptArrayAt(PAdptArray pArr, int index, PElement pElem){
 
 PElement GetAdptArrayAt(PAdptArray pArr, int index){
     if(pArr == NULL){
+        return NULL;
+    }
+
+    if(pArr->size <= index){
+        return NULL;
+    }
+    if((!(pArr->pElement)[index])){
         return NULL;
     }
     return pArr->copy_func((pArr->pElement)[index]);
@@ -86,7 +96,14 @@ void PrintDB(PAdptArray pArr){
     if(pArr == NULL){
         return;
     }
+    if (pArr->pElement == NULL)
+    {
+        return;
+    }
+    
     for(int i = 0; i < pArr->size; i++){
-        pArr->print_func((pArr->pElement)[i]);
+        if((pArr->pElement)[i] != NULL){
+            pArr->print_func((pArr->pElement)[i]);
+        }
     }
 }
